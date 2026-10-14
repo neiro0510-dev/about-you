@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>あなたに関するアンケート</title>
+<style>
+body {
+  margin: 0;
+  background: #f5f6f7;
+  color: #30363c;
+  font-family: sans-serif;
+  padding: 24px;
+}
+main {
+  background: white;
+  padding: 30px 22px;
+  margin-top: 50px;
+  border: 1px solid #ddd;
+}
+button {
+  background: #30363c;
+  color: white;
+  border: none;
+  padding: 15px;
+  width: 100%;
+}
+</style>
+</head>
+<body>
+<small>HUMAN EVALUATION LAB / 0.1</small>
+<main>
+<h2>対話品質評価プログラム</h2>
+<p>試作AIの評価にご協力ください。</p>
+<button onclick="start()">試用を開始する</button>
+<p id="message"></p>
+</main>
+<script>
+function start() {
+  document.getElementById("message").textContent =
+    "接続を確認しました。評価を開始します。";
+}
+</script>
+</body>
+</html>
