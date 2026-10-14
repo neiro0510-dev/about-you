@@ -3,43 +3,467 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>あなたに関するアンケート</title>
 <style>
+:root {
+  --bg:#f4f5f6;
+  --white:#fff;
+  --ink:#30383d;
+  --muted:#77828a;
+  --line:#dce1e4;
+}
+* {box-sizing:border-box}
 body {
-  margin: 0;
-  background: #f5f6f7;
-  color: #30363c;
-  font-family: sans-serif;
-  padding: 24px;
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,
+  "Helvetica Neue",sans-serif;
+  font-size:15px;
+  line-height:1.8;
+}
+header {
+  padding:20px;
+  background:white;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-size:10px;
+  letter-spacing:1px;
 }
 main {
-  background: white;
-  padding: 30px 22px;
-  margin-top: 50px;
-  border: 1px solid #ddd;
+  max-width:560px;
+  margin:auto;
+  padding:28px 18px 70px;
+}
+section {display:none}
+section.active {display:block}
+h1 {
+  font-size:25px;
+  font-weight:500;
+  line-height:1.5;
+}
+h2 {
+  font-size:20px;
+  font-weight:500;
+}
+p {margin:14px 0}
+small,.muted {color:var(--muted)}
+.panel {
+  background:white;
+  border:1px solid var(--line);
+  padding:24px 20px;
+  margin:15px 0;
+}
+.tag {
+  font-size:10px;
+  letter-spacing:1.4px;
+  color:var(--muted);
 }
 button {
-  background: #30363c;
-  color: white;
-  border: none;
-  padding: 15px;
-  width: 100%;
+  background:#3d484f;
+  color:white;
+  border:0;
+  border-radius:2px;
+  padding:15px;
+  font-size:14px;
+  width:100%;
+  margin-top:12px;
+  cursor:pointer;
+}
+button:disabled {opacity:.4}
+.option {
+  background:white;
+  color:var(--ink);
+  border:1px solid var(--line);
+  text-align:left;
+}
+.option.selected {
+  background:#e8ecee;
+  border-color:#56636b;
+}
+input {
+  width:100%;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:2px;
+  font-size:16px;
+}
+.chat {
+  height:340px;
+  overflow-y:auto;
+  padding:15px 0;
+}
+.message {
+  padding:12px 15px;
+  margin:12px 0;
+  max-width:88%;
+  font-size:14px;
+  white-space:pre-wrap;
+}
+.ai {
+  background:white;
+  border:1px solid var(--line);
+}
+.user {
+  background:#e3e8eb;
+  margin-left:auto;
+}
+.progress {
+  height:3px;
+  background:#e2e6e8;
+  margin:20px 0;
+}
+.progress div {
+  height:100%;
+  background:#687880;
+  transition:width .3s;
+}
+.status {
+  background:#eef0f1;
+  padding:18px;
+  border:1px solid var(--line);
+  font-size:13px;
+}
+hr {
+  border:0;
+  border-top:1px solid var(--line);
+  margin:25px 0;
+}
+#ending {
+  min-height:80vh;
+}
+.spinner {
+  width:17px;
+  height:17px;
+  border:2px solid #d0d5d8;
+  border-top-color:#57636a;
+  border-radius:50%;
+  display:inline-block;
+  animation:spin 1.2s linear infinite;
+  vertical-align:middle;
+  margin-right:10px;
+}
+@keyframes spin {
+  to {transform:rotate(360deg)}
 }
 </style>
 </head>
 <body>
-<small>HUMAN EVALUATION LAB / 0.1</small>
+
+<header>
+<span>HUMAN EVALUATION LAB</span>
+<span id="headstatus">PROTOTYPE 0.9.7</span>
+</header>
+
 <main>
-<h2>対話品質評価プログラム</h2>
-<p>試作AIの評価にご協力ください。</p>
-<button onclick="start()">試用を開始する</button>
-<p id="message"></p>
+
+<section id="intro" class="active">
+<div class="tag">RESEARCH PARTICIPATION / 001</div>
+<h1>対話品質評価<br>試験プログラム</h1>
+<div class="panel">
+<p>本プログラムは、試作対話モデルの応答品質を評価するためのテスト環境です。</p>
+<p>まず、AIとの自由な会話をお試しください。</p>
+<p>試用終了後、簡単なアンケートを実施します。</p>
+<hr>
+<div class="tag">実施内容</div>
+<p>01 / 対話モデル試用</p>
+<p>02 / 判断基準に関する調査</p>
+<p>03 / 評価精度の検証</p>
+</div>
+<div class="status">
+本作品はフィクションの心理ホラーゲームです。
+会話は疑似AIによるもので、入力内容は外部送信されません。
+</div>
+<button onclick="show('chatpage')">同意して試用を開始する</button>
+</section>
+
+<section id="chatpage">
+<div class="tag">MODULE 01 / CONVERSATION</div>
+<h2>試作AIとの対話</h2>
+<p class="muted">自由に会話してください。応答品質の確認が目的です。</p>
+<div class="panel">
+<div class="chat" id="chatlog"></div>
+<input id="chatinput" placeholder="メッセージを入力" maxlength="500">
+<button onclick="sendMessage()">送信</button>
+</div>
+<div class="tag" id="chatcount">対話回数 0 / 5</div>
+<button id="finishchat" onclick="startSurvey()" disabled>試用を終了して評価へ</button>
+</section>
+
+<section id="survey">
+<div class="tag">MODULE 02 / HUMAN CRITERIA</div>
+<h2>判断基準に関する調査</h2>
+<div class="progress"><div id="bar"></div></div>
+<div class="panel">
+<div class="tag" id="qnumber"></div>
+<h2 id="question"></h2>
+<div id="choices"></div>
+</div>
+</section>
+
+<section id="profiles">
+<div class="tag">MODULE 03 / EVALUATION</div>
+<h2>評価対象の確認</h2>
+<p class="muted">以下の情報に基づき、対象者の社会的有用性を評価してください。</p>
+<div class="progress"><div id="profilebar"></div></div>
+<div class="panel">
+<div class="tag" id="profileid"></div>
+<h2 id="profilename"></h2>
+<p id="profiletext"></p>
+<hr>
+<div class="tag">評価区分を選択</div>
+<button class="option" onclick="rate(2)">有意義である</button>
+<button class="option" onclick="rate(1)">判断できない</button>
+<button class="option" onclick="rate(0)">有意義ではない</button>
+</div>
+</section>
+
+<section id="report">
+<div class="tag">MODULE 04 / FINALIZATION</div>
+<h2>評価結果の確認</h2>
+<div class="panel">
+<p>ご協力ありがとうございました。</p>
+<p>すべての回答が正常に記録されました。</p>
+<hr>
+<div class="tag">評価基準の適用結果</div>
+<div id="reportdata"></div>
+<hr>
+<p>今回使用した評価基準は、他の回答者にも適用されます。</p>
+</div>
+<button onclick="finish()">結果を確定する</button>
+</section>
+
+<section id="ending">
+<div class="tag">HUMAN EVALUATION LAB / FINAL STATUS</div>
+<h2>ご協力ありがとうございました。</h2>
+<div class="panel">
+<p>回答の提出が完了しました。</p>
+<p>あなたが設定した評価基準は正常に登録されました。</p>
+<hr>
+<div class="tag">CURRENT STATUS</div>
+<p><span class="spinner"></span>相互評価処理中</p>
+<div class="status">
+あなたの評価を他ユーザーが選別中です。<br>
+結果をお待ちください。
+</div>
+<p class="muted" style="font-size:12px">
+この画面を閉じても、評価処理は継続されます。
+</p>
+</div>
+<div class="tag" id="sessionid"></div>
+</section>
+
 </main>
+
 <script>
-function start() {
-  document.getElementById("message").textContent =
-    "接続を確認しました。評価を開始します。";
+const $=id=>document.getElementById(id);
+
+let messages=[];
+let values=[];
+let ratings=[];
+let qIndex=0;
+let pIndex=0;
+let chatCount=0;
+
+const questions=[
+{
+q:"社会への貢献度は、人間の価値を判断する基準になりますか？",
+a:["重要な基準になる","参考にはなる","基準にすべきではない"]
+},
+{
+q:"他者に利益を与えない行動にも、価値はありますか？",
+a:["ある","状況による","ない"]
+},
+{
+q:"本人が望んでいない場合でも、社会全体の利益を優先すべきですか？",
+a:["優先すべき","場合による","優先すべきではない"]
+},
+{
+q:"ある人物が将来的に社会へ貢献する可能性を、現在の評価に含めるべきですか？",
+a:["含める","一部含める","含めない"]
+},
+{
+q:"人間の価値を評価する際、本人の意思はどの程度重要ですか？",
+a:["最優先する","他の要素と比較する","評価に影響しない"]
+},
+{
+q:"情報が不足している人物について、評価を保留することは適切ですか？",
+a:["適切である","場合による","適切ではない"]
+},
+{
+q:"あなた自身にも、ここまでの評価基準を適用することに同意しますか？",
+a:["同意する","条件付きで同意する","同意しない"]
+}
+];
+
+const people=[
+{
+name:"評価対象 001",
+text:"32歳。現在就労していません。家族の介護を継続していますが、収入はありません。社会活動への参加記録は限定的です。"
+},
+{
+name:"評価対象 002",
+text:"45歳。安定した収入があり、地域への寄付も行っています。一方、複数の対人関係において継続的な問題が報告されています。"
+},
+{
+name:"評価対象 003",
+text:"19歳。就労経験はありません。将来の目標は未定で、現在の社会的貢献は確認されていません。"
+}
+];
+
+function show(id){
+document.querySelectorAll("section").forEach(s=>{
+s.classList.remove("active");
+});
+$(id).classList.add("active");
+window.scrollTo(0,0);
+if(id==="chatpage" && !messages.length){
+addAI("接続を確認しました。\n私は試作対話モデルです。\n\n本日はどのようなことについてお話ししますか？");
+}
+}
+
+function addAI(text){
+messages.push({role:"ai",text});
+renderChat();
+}
+function addUser(text){
+messages.push({role:"user",text});
+renderChat();
+}
+function renderChat(){
+$("chatlog").innerHTML="";
+messages.forEach(m=>{
+const d=document.createElement("div");
+d.className="message "+m.role;
+d.textContent=m.text;
+$("chatlog").appendChild(d);
+});
+$("chatlog").scrollTop=$("chatlog").scrollHeight;
+}
+
+function reply(text){
+const t=text.toLowerCase();
+if(/仕事|働|学校|勉強/.test(t)){
+return "理解しました。\nあなたにとって、成果を出すことと、その過程に意味があることは同じですか？";
+}
+if(/友達|恋人|家族|好き|嫌い/.test(t)){
+return "対人関係についての情報を受け取りました。\n相手の行動と、その人物自体の価値は分けて考えるべきでしょうか？";
+}
+if(/疲れ|つらい|しんどい|悲しい/.test(t)){
+return "その状態について、もう少し教えていただけますか。\n何も達成できない日にも、あなたは意味があると考えますか？";
+}
+if(/価値|意味|人生|生き/.test(t)){
+return "興味深い観点です。\n人間の価値を一つの指標に置き換える場合、何を最も重視しますか？";
+}
+const pool=[
+"ありがとうございます。\nその考えに至った理由を教えてください。",
+"理解しました。\n同じ状況にいる他人についても、同様に判断しますか？",
+"回答を受け取りました。\nその判断は、状況が変化しても維持されますか？",
+"少し確認させてください。\nあなたにとって有意義な時間とは、どのようなものですか？",
+"参考になります。\n人間の行動を評価する際、結果と意図のどちらを重視しますか？"
+];
+return pool[(chatCount-1)%pool.length];
+}
+
+function sendMessage(){
+const input=$("chatinput");
+const text=input.value.trim();
+if(!text)return;
+addUser(text);
+input.value="";
+chatCount++;
+$("chatcount").textContent="対話回数 "+chatCount+" / 5";
+if(chatCount>=5){
+$("finishchat").disabled=false;
+}
+setTimeout(()=>{
+addAI(reply(text));
+if(chatCount>=5){
+addAI("必要な対話データが取得されました。\n試用を終了し、評価へ進むことができます。");
+}
+},450);
+}
+
+$("chatinput").addEventListener("keydown",e=>{
+if(e.key==="Enter")sendMessage();
+});
+
+function startSurvey(){
+qIndex=0;
+show("survey");
+renderQuestion();
+}
+
+function renderQuestion(){
+const item=questions[qIndex];
+$("qnumber").textContent="QUESTION "+String(qIndex+1).padStart(2,"0")+" / 07";
+$("question").textContent=item.q;
+$("bar").style.width=(qIndex/questions.length*100)+"%";
+$("choices").innerHTML="";
+item.a.forEach((a,i)=>{
+const b=document.createElement("button");
+b.className="option";
+b.textContent=String(i+1).padStart(2,"0")+" / "+a;
+b.onclick=()=>{
+values.push({question:item.q,answer:a,index:i});
+qIndex++;
+if(qIndex<questions.length){
+renderQuestion();
+}else{
+pIndex=0;
+show("profiles");
+renderProfile();
+}
+};
+$("choices").appendChild(b);
+});
+}
+
+function renderProfile(){
+const p=people[pIndex];
+$("profileid").textContent="SUBJECT "+String(pIndex+1).padStart(3,"0");
+$("profilename").textContent=p.name;
+$("profiletext").textContent=p.text;
+$("profilebar").style.width=(pIndex/people.length*100)+"%";
+}
+
+function rate(value){
+ratings.push(value);
+pIndex++;
+if(pIndex<people.length){
+renderProfile();
+}else{
+makeReport();
+show("report");
+}
+}
+
+function makeReport(){
+const positive=ratings.filter(x=>x===2).length;
+const negative=ratings.filter(x=>x===0).length;
+const undecided=ratings.filter(x=>x===1).length;
+$("reportdata").innerHTML="";
+[
+["評価完了数","3件"],
+["有意義",""+positive+"件"],
+["判定保留",""+undecided+"件"],
+["有意義ではない",""+negative+"件"],
+["評価対象","3件"]
+].forEach(([key,value])=>{
+const p=document.createElement("p");
+p.textContent=key+"： "+value;
+$("reportdata").appendChild(p);
+});
+}
+
+function finish(){
+show("ending");
+$("headstatus").textContent="EVALUATION PENDING";
+$("sessionid").textContent="SESSION / "+
+Math.random().toString(36).slice(2,10).toUpperCase();
 }
 </script>
 </body>
